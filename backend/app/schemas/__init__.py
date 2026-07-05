@@ -61,6 +61,43 @@ class JobPostingRead(JobPostingBase, TimestampSchema):
     id: int
 
 
+class JobPostingSummary(BaseModel):
+    id: int
+    company_id: int
+    company_name: str
+    title: str
+    job_category: Optional[str] = None
+    location: Optional[str] = None
+    job_type: Optional[str] = None
+    experience_level: Optional[str] = None
+    salary_range: Optional[str] = None
+    deadline: Optional[date] = None
+    source_site: Optional[str] = None
+    source_url: Optional[str] = None
+    is_active: bool
+    skills: list[str] = []
+
+
+class JobPostingDetail(JobPostingSummary):
+    description: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class JobPostingQuery(BaseModel):
+    q: Optional[str] = None
+    job_category: Optional[str] = None
+    company_name: Optional[str] = None
+    location: Optional[str] = None
+    experience_level: Optional[str] = None
+    skill: Optional[str] = None
+    deadline_from: Optional[date] = None
+    deadline_to: Optional[date] = None
+    is_active: Optional[bool] = True
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=20, ge=1, le=100)
+
+
 class JobSkillBase(BaseModel):
     job_posting_id: int
     skill_id: int
@@ -93,7 +130,7 @@ class BookmarkBase(BaseModel):
 
 
 class BookmarkCreate(BookmarkBase):
-    pass
+    user_id: int = 1
 
 
 class BookmarkRead(BookmarkBase, TimestampSchema):
@@ -108,13 +145,24 @@ class ApplicationBase(BaseModel):
 
 
 class ApplicationCreate(ApplicationBase):
-    pass
+    user_id: int = 1
+
+
+class ApplicationUpdate(BaseModel):
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    applied_at: Optional[datetime] = None
 
 
 class ApplicationRead(ApplicationBase, TimestampSchema):
     id: int
     user_id: int
     applied_at: Optional[datetime] = None
+
+
+class ApplicationListItem(ApplicationRead):
+    job_title: Optional[str] = None
+    company_name: Optional[str] = None
 
 
 class ResumeBase(BaseModel):
@@ -153,7 +201,7 @@ class CompanyFollowBase(BaseModel):
 
 
 class CompanyFollowCreate(CompanyFollowBase):
-    pass
+    user_id: int = 1
 
 
 class CompanyFollowRead(CompanyFollowBase, TimestampSchema):
@@ -177,3 +225,14 @@ class NotificationCreate(NotificationBase):
 class NotificationRead(NotificationBase, TimestampSchema):
     id: int
     user_id: int
+
+
+class DashboardStats(BaseModel):
+    total_job_postings: int
+    active_job_postings: int
+    total_companies: int
+    total_skills: int
+    total_bookmarks: int
+    total_applications: int
+    total_company_follows: int
+    applications_by_status: dict[str, int]
