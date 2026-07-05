@@ -60,6 +60,7 @@ export type ApplicationItem = {
   status: string;
   notes?: string | null;
   applied_at?: string | null;
+  deadline?: string | null;
   created_at: string;
   updated_at: string;
   job_title?: string | null;
@@ -69,12 +70,19 @@ export type ApplicationItem = {
 export type DashboardStats = {
   total_job_postings: number;
   active_job_postings: number;
+  new_job_postings: number;
+  deadline_soon_job_postings: number;
   total_companies: number;
   total_skills: number;
   total_bookmarks: number;
   total_applications: number;
   total_company_follows: number;
   applications_by_status: Record<string, number>;
+  completed_applications: number;
+  top_skills: Array<{ name: string; value: number }>;
+  job_count_by_location: Array<{ name: string; value: number }>;
+  job_count_by_category: Array<{ name: string; value: number }>;
+  application_status_ratio: Array<{ name: string; value: number }>;
 };
 
 export type AIAnalysisRequest = {
@@ -104,6 +112,8 @@ export type ApplicationPayload = {
   job_posting_id: number;
   status: string;
   notes?: string;
+  applied_at?: string;
+  deadline?: string;
 };
 
 const buildQuery = (params: Record<string, string | number | boolean | undefined>) => {

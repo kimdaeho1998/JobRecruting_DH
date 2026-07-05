@@ -154,6 +154,8 @@ def create_application(payload: ApplicationCreate, db: Session = Depends(get_db)
         job_posting_id=payload.job_posting_id,
         status_value=payload.status,
         notes=payload.notes,
+        applied_at=payload.applied_at,
+        deadline=payload.deadline,
     )
 
 

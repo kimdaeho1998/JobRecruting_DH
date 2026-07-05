@@ -208,6 +208,7 @@ class Application(TimestampMixin, Base):
     )
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="saved")
     applied_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     user: Mapped[User] = relationship(back_populates="applications")

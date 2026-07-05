@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
   api,
   type ApplicationItem,
   type Company,
@@ -21,7 +33,7 @@ const navItems: Array<{ page: Page; label: string }> = [
   { page: 'compare', label: 'Compare Jobs' },
 ];
 
-const applicationStatuses = ['saved', 'applied', 'interview', 'offer', 'rejected'];
+const applicationStatuses = ['관심', '지원 예정', '지원 완료', '서류 합격', '면접', '최종 합격', '불합격'];
 
 const readStoredNumbers = (key: string) => {
   try {
@@ -48,11 +60,13 @@ const uniqueValues = (jobs: JobPostingSummary[], selector: (job: JobPostingSumma
 
 const statusLabel = (status: string) => {
   const labels: Record<string, string> = {
-    saved: '저장',
-    applied: '지원',
-    interview: '면접',
-    offer: '오퍼',
-    rejected: '불합격',
+    관심: '관심',
+    '지원 예정': '지원 예정',
+    '지원 완료': '지원 완료',
+    '서류 합격': '서류 합격',
+    면접: '면접',
+    '최종 합격': '최종 합격',
+    불합격: '불합격',
   };
   return labels[status] ?? status;
 };
@@ -350,7 +364,7 @@ const App = () => {
     }
 
     if (page === 'dashboard') {
-      return <Dashboard stats={stats} jobs={jobs} applications={applications} />;
+      return <Dashboard stats={stats} jobs={jobs} />;
     }
 
     if (page === 'compare') {
@@ -726,53 +740,99 @@ const JobDetailPage = ({ job, aiAnalysis, isBookmarked, isCompared, onBack, onBo
   );
 };
 
-const ApplicationBoard = ({ applications }: { applications: ApplicationItem[] }) => (
-  <section className="grid gap-4">
-    <div>
-      <h1 className="text-2xl font-bold">Application Board</h1>
-      <p className="text-sm text-slate-600">지원 상태별로 현재 공고 진행 상황을 확인합니다.</p>
-    </div>
-    <div className="grid gap-4 lg:grid-cols-5">
-      {applicationStatuses.map((status) => (
-        <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm" key={status}>
-          <h2 className="font-bold">{statusLabel(status)}</h2>
-          <div className="mt-3 grid gap-3">
-            {applications.filter((application) => application.status === status).map((application) => (
-              <div className="rounded-lg bg-slate-50 p-3 text-sm" key={application.id}>
-                <p className="font-semibold">{application.job_title ?? `공고 #${application.job_posting_id}`}</p>
-                <p className="text-slate-600">{application.company_name ?? '회사 미정'}</p>
-              </div>
-            ))}
+const ApplicationBoard = ({ applications }: { applications: ApplicationItem[] }) => {
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+
+  const updateStatus = async (applicationId: number, status: string) => {
+    try {
+      await api.updateApplication(applicationId, status);
+      window.location.reload();
+    } catch {
+      // noop
+    }
+  };
+
+  return (
+    <section className="grid gap-4">
+      <div>
+        <h1 className="text-2xl font-bold">Application Board</h1>
+        <p className="text-sm text-slate-600">드래그 앤 드롭으로 지원 상태를 변경하고, 마감일과 메모를 관리합니다.</p>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
+        {applicationStatuses.map((status) => (
+          <div
+            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+            key={status}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => {
+              if (draggedId) {
+                void updateStatus(draggedId, status);
+              }
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold">{statusLabel(status)}</h2>
+              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                {applications.filter((application) => application.status === status).length}
+              </span>
+            </div>
+            <div className="mt-3 grid gap-3">
+              {applications.filter((application) => application.status === status).map((application) => {
+                const deadline = application.deadline ? new Date(application.deadline) : null;
+                const isDeadlineSoon = deadline && deadline.getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
+
+                return (
+                  <div
+                    className={`rounded-lg border p-3 text-sm ${isDeadlineSoon ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-slate-50'}`}
+                    draggable
+                    key={application.id}
+                    onDragStart={() => setDraggedId(application.id)}
+                  >
+                    <p className="font-semibold">{application.job_title ?? `공고 #${application.job_posting_id}`}</p>
+                    <p className="text-slate-600">{application.company_name ?? '회사 미정'}</p>
+                    <p className="mt-2 text-xs text-slate-500">지원일: {application.applied_at ? new Date(application.applied_at).toLocaleDateString() : '미기록'}</p>
+                    <p className="text-xs text-slate-500">마감일: {application.deadline ? new Date(application.deadline).toLocaleDateString() : '미정'}</p>
+                    <label className="mt-2 block text-xs text-slate-600">
+                      메모
+                      <div className="mt-1 rounded border border-slate-200 bg-white px-2 py-1 text-xs">{application.notes ?? '메모 없음'}</div>
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
-  </section>
-);
+        ))}
+      </div>
+    </section>
+  );
+};
 
 const Dashboard = ({
   stats,
   jobs,
-  applications,
 }: {
   stats: DashboardStats | null;
   jobs: JobPostingSummary[];
-  applications: ApplicationItem[];
 }) => {
   const cards = [
     ['전체 공고', stats?.total_job_postings ?? jobs.length],
-    ['활성 공고', stats?.active_job_postings ?? jobs.length],
-    ['회사', stats?.total_companies ?? 0],
-    ['기술스택', stats?.total_skills ?? 0],
+    ['신규 공고', stats?.new_job_postings ?? 0],
+    ['마감 임박', stats?.deadline_soon_job_postings ?? 0],
     ['북마크', stats?.total_bookmarks ?? 0],
-    ['지원현황', stats?.total_applications ?? applications.length],
+    ['지원 완료', stats?.completed_applications ?? 0],
+    ['기술스택', stats?.total_skills ?? 0],
   ];
+
+  const barData = (stats?.top_skills ?? []).map((item) => ({ name: item.name, value: item.value }));
+  const locationData = (stats?.job_count_by_location ?? []).map((item) => ({ name: item.name, value: item.value }));
+  const categoryData = (stats?.job_count_by_category ?? []).map((item) => ({ name: item.name, value: item.value }));
+  const ratioData = (stats?.application_status_ratio ?? []).map((item) => ({ name: item.name, value: item.value }));
 
   return (
     <section className="grid gap-5">
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-slate-600">공고와 활동 현황을 요약합니다.</p>
+        <p className="text-sm text-slate-600">공고와 지원 흐름을 한눈에 파악합니다.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map(([label, value]) => (
@@ -781,6 +841,67 @@ const Dashboard = ({
             <p className="mt-2 text-3xl font-bold">{value}</p>
           </div>
         ))}
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold">기술스택 빈도 TOP 10</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#0f766e" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold">지원현황 비율</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={ratioData} dataKey="value" nameKey="name" outerRadius={90} label>
+                  {ratioData.map((entry, index) => (
+                    <Cell key={`${entry.name}-${index}`} fill={['#0f766e', '#14b8a6', '#2dd4bf', '#5eead4', '#99f6e4', '#ccfbf1'][index % 6]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold">지역별 공고 수</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={locationData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#2563eb" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="font-bold">직무별 공고 수</h2>
+          <div className="mt-4 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#7c3aed" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="font-bold">지원 상태 분포</h2>

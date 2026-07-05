@@ -142,6 +142,8 @@ class ApplicationBase(BaseModel):
     job_posting_id: int
     status: str = "saved"
     notes: Optional[str] = None
+    applied_at: Optional[datetime] = None
+    deadline: Optional[date] = None
 
 
 class ApplicationCreate(ApplicationBase):
@@ -152,6 +154,7 @@ class ApplicationUpdate(BaseModel):
     status: Optional[str] = None
     notes: Optional[str] = None
     applied_at: Optional[datetime] = None
+    deadline: Optional[date] = None
 
 
 class ApplicationRead(ApplicationBase, TimestampSchema):
@@ -230,12 +233,19 @@ class NotificationRead(NotificationBase, TimestampSchema):
 class DashboardStats(BaseModel):
     total_job_postings: int
     active_job_postings: int
+    new_job_postings: int
+    deadline_soon_job_postings: int
     total_companies: int
     total_skills: int
     total_bookmarks: int
     total_applications: int
     total_company_follows: int
     applications_by_status: dict[str, int]
+    completed_applications: int
+    top_skills: list[dict[str, Any]]
+    job_count_by_location: list[dict[str, Any]]
+    job_count_by_category: list[dict[str, Any]]
+    application_status_ratio: list[dict[str, Any]]
 
 
 class AIAnalysisRequest(BaseModel):

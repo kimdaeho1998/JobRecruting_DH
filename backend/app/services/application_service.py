@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -31,6 +31,8 @@ class ApplicationService:
         job_posting_id: int,
         status_value: str,
         notes: str | None = None,
+        applied_at: datetime | None = None,
+        deadline: date | None = None,
     ) -> Application:
         self.user_repository.ensure_user(user_id)
         if not self.job_repository.get_by_id(job_posting_id):
@@ -46,11 +48,14 @@ class ApplicationService:
                 job_posting_id=job_posting_id,
                 status=status_value,
                 notes=notes,
+                applied_at=applied_at,
             )
             self.db.add(application)
 
-        if status_value == "applied" and application.applied_at is None:
-            application.applied_at = datetime.utcnow()
+        if status_value in {"지원 완료", "서류 합격", "면접", "최종 합격", "불합격"} and application.applied_at is None:
+            application.applied_at = applied_at or datetime.utcnow()
+        if deadline is not None:
+            application.deadline = deadline
 
         self.db.commit()
         self.db.refresh(application)
@@ -63,12 +68,14 @@ class ApplicationService:
 
         if payload.status is not None:
             application.status = payload.status
-            if payload.status == "applied" and application.applied_at is None:
+            if payload.status in {"지원 완료", "서류 합격", "면접", "최종 합격", "불합격"} and application.applied_at is None:
                 application.applied_at = datetime.utcnow()
         if payload.notes is not None:
             application.notes = payload.notes
         if payload.applied_at is not None:
             application.applied_at = payload.applied_at
+        if payload.deadline is not None:
+            application.deadline = payload.deadline
 
         self.db.commit()
         self.db.refresh(application)
@@ -83,6 +90,7 @@ class ApplicationService:
             "status": application.status,
             "notes": application.notes,
             "applied_at": application.applied_at,
+            "deadline": application.deadline,
             "created_at": application.created_at,
             "updated_at": application.updated_at,
             "job_title": job_posting.title if job_posting else None,
