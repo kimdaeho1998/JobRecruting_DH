@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from sqlalchemy import (
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -70,7 +71,6 @@ class Skill(TimestampMixin, Base):
 class JobPosting(TimestampMixin, Base):
     __tablename__ = "job_postings"
     __table_args__ = (
-        Index("ix_job_postings_company_id", "company_id"),
         Index("ix_job_postings_title", "title"),
     )
 
@@ -81,11 +81,14 @@ class JobPosting(TimestampMixin, Base):
         index=True,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    job_category: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     location: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     job_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     experience_level: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     salary_range: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    deadline: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    source_site: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     source_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
@@ -213,9 +216,6 @@ class Application(TimestampMixin, Base):
 
 class Resume(TimestampMixin, Base):
     __tablename__ = "resumes"
-    __table_args__ = (
-        Index("ix_resumes_user_id", "user_id"),
-    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -236,10 +236,6 @@ class Resume(TimestampMixin, Base):
 
 class ResumeAnalysis(TimestampMixin, Base):
     __tablename__ = "resume_analyses"
-    __table_args__ = (
-        Index("ix_resume_analyses_resume_id", "resume_id"),
-        Index("ix_resume_analyses_job_posting_id", "job_posting_id"),
-    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     resume_id: Mapped[int] = mapped_column(
@@ -284,10 +280,6 @@ class CompanyFollow(TimestampMixin, Base):
 
 class Notification(TimestampMixin, Base):
     __tablename__ = "notifications"
-    __table_args__ = (
-        Index("ix_notifications_user_id", "user_id"),
-        Index("ix_notifications_is_read", "is_read"),
-    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -41,11 +41,14 @@ class SkillRead(SkillBase, TimestampSchema):
 class JobPostingBase(BaseModel):
     company_id: int
     title: str = Field(..., min_length=1, max_length=255)
+    job_category: Optional[str] = None
     location: Optional[str] = None
     job_type: Optional[str] = None
     experience_level: Optional[str] = None
     description: Optional[str] = None
     salary_range: Optional[str] = None
+    deadline: Optional[date] = None
+    source_site: Optional[str] = None
     source_url: Optional[str] = None
     is_active: bool = True
 
