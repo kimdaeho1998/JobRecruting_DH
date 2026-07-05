@@ -22,6 +22,8 @@ from app.schemas import (
     JobPostingSummary,
     SkillRead,
 )
+from app.schemas import AIAnalysisRequest, AIAnalysisResponse
+from app.services.ai_service import AIService
 from app.services.application_service import ApplicationService
 from app.services.bookmark_service import BookmarkService
 from app.services.catalog_service import CatalogService
@@ -187,3 +189,77 @@ def delete_company_follow(
 @router.get("/dashboard/stats", response_model=DashboardStats, tags=["dashboard"])
 def get_dashboard_stats(db: Session = Depends(get_db)):
     return DashboardService(db).get_stats()
+
+
+@router.post("/ai/analyze", response_model=AIAnalysisResponse, tags=["ai"])
+def analyze_with_ai(payload: AIAnalysisRequest):
+    service = AIService()
+    prompt_file = payload.prompt_file or "job_summary.prompt.md"
+    result = service.generate_response(
+        prompt_file,
+        company_name=payload.company_name,
+        job_title=payload.job_title,
+        job_description=payload.job_description,
+        resume_text=payload.resume_text,
+        job_a_title=payload.job_a_title,
+        job_a_description=payload.job_a_description,
+        job_b_title=payload.job_b_title,
+        job_b_description=payload.job_b_description,
+    )
+    return AIAnalysisResponse(prompt_file=prompt_file, result=result)
+
+
+@router.post("/ai/summary", response_model=AIAnalysisResponse, tags=["ai"])
+def generate_job_summary(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("job_summary.prompt.md", payload)
+
+
+@router.post("/ai/skills", response_model=AIAnalysisResponse, tags=["ai"])
+def extract_job_skills(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("skill_extraction.prompt.md", payload)
+
+
+@router.post("/ai/fit", response_model=AIAnalysisResponse, tags=["ai"])
+def analyze_job_fit(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("job_fit_analysis.prompt.md", payload)
+
+
+@router.post("/ai/resume", response_model=AIAnalysisResponse, tags=["ai"])
+def analyze_resume(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("resume_analysis.prompt.md", payload)
+
+
+@router.post("/ai/cover-letter", response_model=AIAnalysisResponse, tags=["ai"])
+def generate_cover_letter(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("cover_letter.prompt.md", payload)
+
+
+@router.post("/ai/interview-questions", response_model=AIAnalysisResponse, tags=["ai"])
+def generate_interview_questions(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("interview_questions.prompt.md", payload)
+
+
+@router.post("/ai/company-analysis", response_model=AIAnalysisResponse, tags=["ai"])
+def analyze_company(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("company_analysis.prompt.md", payload)
+
+
+@router.post("/ai/compare", response_model=AIAnalysisResponse, tags=["ai"])
+def compare_jobs(payload: AIAnalysisRequest):
+    return _analyze_with_prompt("job_compare.prompt.md", payload)
+
+
+def _analyze_with_prompt(prompt_file: str, payload: AIAnalysisRequest) -> AIAnalysisResponse:
+    service = AIService()
+    result = service.generate_response(
+        prompt_file,
+        company_name=payload.company_name,
+        job_title=payload.job_title,
+        job_description=payload.job_description,
+        resume_text=payload.resume_text,
+        job_a_title=payload.job_a_title,
+        job_a_description=payload.job_a_description,
+        job_b_title=payload.job_b_title,
+        job_b_description=payload.job_b_description,
+    )
+    return AIAnalysisResponse(prompt_file=prompt_file, result=result)

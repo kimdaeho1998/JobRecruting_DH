@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -236,3 +236,20 @@ class DashboardStats(BaseModel):
     total_applications: int
     total_company_follows: int
     applications_by_status: dict[str, int]
+
+
+class AIAnalysisRequest(BaseModel):
+    prompt_file: Optional[str] = None
+    company_name: Optional[str] = None
+    job_title: Optional[str] = None
+    job_description: Optional[str] = None
+    resume_text: Optional[str] = None
+    job_a_title: Optional[str] = None
+    job_a_description: Optional[str] = None
+    job_b_title: Optional[str] = None
+    job_b_description: Optional[str] = None
+
+
+class AIAnalysisResponse(BaseModel):
+    prompt_file: str
+    result: dict[str, Any]
