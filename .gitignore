@@ -24,6 +24,7 @@ frontend/dist/
 *.db
 *.sqlite
 *.sqlite3
+backend/logs/
 
 # OS and editor
 .DS_Store
