@@ -1,58 +1,131 @@
-# Development Roadmap
+# 개발 로드맵
 
-## 1. 개발 단계별 Roadmap
+## 현재 상태 요약
 
-### Phase 1: 프로젝트 초기 설계
-- 프로젝트 목표와 범위 정의
-- 기술 스택 및 아키텍처 결정
-- AGENTS.md, README, docs 구조 작성
-- 기본 디렉터리 구조 구성
+현재 프로젝트는 MVP의 핵심 구조가 구현된 상태입니다.
 
-### Phase 2: MVP 백엔드 기본 구성
-- FastAPI 프로젝트 초기 설정
-- PostgreSQL 연결 구성
-- 기본 모델 및 스키마 설계
-- Mock Data 기반 API 구현
+- React 기반 프론트엔드 워크스페이스 구현
+- FastAPI REST API 구현
+- SQLAlchemy ORM 모델과 Repository/Service 계층 구성
+- 채용공고, 북마크, 지원현황, 회사 관심, 대시보드 API 구현
+- AIService의 Mock/OpenAI 전환 구조 구현
+- 프롬프트 파일 기반 PromptLoader 구현
+- Provider 기반 크롤러 골격 구현
+- unittest 기반 서비스 테스트 작성
 
-### Phase 3: MVP 프론트엔드 구성
-- React 프로젝트 초기 설정
-- 라우팅 구조 설정
-- 공고 목록, 상세, 비교, 지원현황 페이지 구현
-- API 연동 및 기본 UI 구성
+## Phase 1. 프로젝트 기획 및 구조 설계
 
-### Phase 4: AI 분석 기능 구현
-- 공고 요약 기능 구현
-- 기술스택 추출 기능 구현
-- 적합도 분석 기능 구현
-- 초기에는 Mock 응답 또는 샘플 데이터로 동작하도록 구성
+상태: 완료
 
-### Phase 5: 테스트 및 품질 확보
-- 단위 테스트 및 API 테스트 작성
-- UI 동작 검증
-- 예외 처리 및 에러 응답 정리
-- 배포 환경 구성
+- 프로젝트 목표와 문제 정의
+- 기술스택 선정
+- 폴더 구조 정의
+- AGENTS.md, README, docs 기반 협업 규칙 정리
+- Docker Compose 기본 구조 작성
 
-### Phase 6: 실제 데이터 수집 확장
-- Playwright 기반 크롤링 모듈 추가
-- 실제 채용 공고 수집 파이프라인 도입
-- 데이터 정규화 로직 강화
-- 운영 환경 최적화
+## Phase 2. 백엔드 MVP
 
-## 2. MVP 우선순위
-1. 공고 목록 및 상세 조회
-2. 공고 요약 및 기술스택 분석
-3. 적합도 분석 결과 표시
-4. 공고 비교 기능
-5. 지원현황 관리 기능
+상태: 완료
 
-## 3. 구현 순서 권장
-- 먼저 Mock Data 기반 API를 구성한다.
-- 이어서 프론트엔드 페이지를 연결한다.
-- 이후 AI 분석 모듈을 붙인다.
-- 마지막으로 실제 크롤링 엔진을 도입한다.
+- FastAPI 앱 구성
+- DB 설정과 SQLAlchemy 모델 작성
+- Pydantic Schema 작성
+- Repository 계층 구성
+- Service 계층 구성
+- REST API 라우트 구현
+- 시드 데이터 생성 스크립트 작성
 
-## 4. 성공 기준
-- 사용자가 공고를 한눈에 비교할 수 있다.
-- AI 기반 요약/분석 결과를 확인할 수 있다.
-- 지원 상태를 관리할 수 있다.
-- 이후 실제 데이터 수집으로 확장 가능한 구조가 확보된다.
+주요 결과:
+
+- 공고 조회/검색 API
+- 회사/기술스택 catalog API
+- 북마크 API
+- 지원현황 API
+- 회사 관심 API
+- 대시보드 통계 API
+
+## Phase 3. 프론트엔드 MVP
+
+상태: 완료
+
+- Vite + React + TypeScript 구성
+- TailwindCSS 스타일 적용
+- API client 작성
+- 공고 목록/상세 화면 구현
+- 북마크 화면 구현
+- 지원현황 보드 구현
+- 대시보드 차트 구현
+- 공고 비교 화면 구현
+
+## Phase 4. AI 분석 구조
+
+상태: 완료
+
+- Mock AIService 구현
+- OpenAI API 호출 구조 추가
+- `.env` 기반 API Key 관리
+- `AI_MODE=mock|openai` 전환
+- PromptLoader 기반 프롬프트 파일 로드
+- placeholder 입력값 주입
+- JSON 응답 파싱
+- Retry, Timeout, 에러 처리
+- AI 호출 로그 저장
+- AI 서비스 단위 테스트 작성
+
+## Phase 5. 크롤러 구조 설계
+
+상태: 설계/골격 구현
+
+- BaseCrawler 인터페이스
+- 사이트별 Provider 골격
+- 공통 raw data 모델
+- Normalizer
+- DeduplicationService
+- CrawlRunner
+
+다음 작업:
+
+- Playwright 도입
+- 사이트별 실제 수집 로직 구현
+- 크롤링 결과 저장 계층 연결
+- 실패/재시도/속도 제한 정책 추가
+
+## Phase 6. 운영 품질 개선
+
+상태: 예정
+
+- 인증/인가 구현
+- 사용자별 데이터 분리
+- AI 분석 결과 저장
+- API 에러 응답 표준화
+- 테스트 커버리지 확대
+- CI 파이프라인 구성
+- 배포 환경 분리
+- 로그/모니터링 구축
+
+## Phase 7. 포트폴리오 완성도 개선
+
+상태: 진행 가능
+
+- 프론트엔드 한글 텍스트 인코딩 정리
+- 주요 화면 스크린샷 추가
+- Swagger API 캡처 추가
+- ERD 이미지 추가
+- 크롤러 동작 예시 추가
+- 실제 OpenAI 분석 결과 샘플 추가
+- 배포 URL 또는 데모 영상 추가
+
+## 우선순위
+
+1. 깨진 한글 UI 텍스트 정리
+2. `.env.example`과 Docker 환경변수 정합성 확인
+3. 실제 OpenAI 모드 smoke test
+4. 크롤러 Provider 1개 실제 구현
+5. 포트폴리오용 화면 캡처와 데모 시나리오 작성
+
+## 성공 기준
+
+- 사용자가 공고 검색부터 지원 상태 관리까지 하나의 흐름으로 사용할 수 있다.
+- AI 분석 기능이 Mock/실제 API 양쪽에서 같은 API 계약으로 동작한다.
+- 새로운 채용 사이트를 Provider 단위로 추가할 수 있다.
+- 문서만 읽어도 프로젝트의 문제 정의, 설계 이유, 구현 범위, 확장 방향을 이해할 수 있다.
