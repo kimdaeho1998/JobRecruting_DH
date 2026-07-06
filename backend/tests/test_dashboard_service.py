@@ -8,11 +8,13 @@ from sqlalchemy.orm import Session
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = ROOT.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from backend.app.models import Base, Bookmark, Company, CompanyFollow, JobPosting, Skill, User, Application
-from backend.app.services.dashboard_service import DashboardService
+from app.models import Application, Base, Bookmark, Company, CompanyFollow, JobPosting, JobSkill, Skill, User
+from app.services.dashboard_service import DashboardService
 
 
 class DashboardServiceTests(unittest.TestCase):
@@ -32,7 +34,7 @@ class DashboardServiceTests(unittest.TestCase):
             deadline=date.today() + timedelta(days=3),
             is_active=True,
         )
-        job.job_skills.append(type("JobSkill", (), {"skill": skill})())
+        job.job_skills.append(JobSkill(skill=skill))
         session.add_all([user, company, skill, job])
         session.flush()
 
